@@ -314,10 +314,10 @@ def format_bytes_to_human(size, precision=2):
 
     '''
     size = int(size)
-    fmt = '%%1.%df %%s' % precision
+    fmt = '{{0:.{0}f}} {{1}}'.format(precision)
     for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
         if size < 1024.0:
-            return fmt % (size, unit)
+            return fmt.format(size, unit)
         size /= 1024.0
 
 

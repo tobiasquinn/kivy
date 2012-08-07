@@ -111,8 +111,8 @@ def require(version):
         raise Exception('Revision format must not have any tag except "dev"')
     if tag == 'dev' and systag != 'dev':
         Logger.warning('Application requested a -dev version of Kivy. '
-                       '(You have %s, but the application requires %s)' % (
-                            __version__, version))
+                       '(You have {0}, but the application requires '
+                       '{1})'.format(__version__, version))
     # not tag rev (-alpha-1, -beta-x) allowed.
     if tagrev is not None:
         raise Exception('Revision format must not contain any tagrevision')
@@ -120,9 +120,8 @@ def require(version):
     # finally, checking revision
     if sysrevision < revision:
         raise Exception('The version of Kivy installed on this system '
-                        'is too old. '
-                        '(You have %s, but the application requires %s)' % (
-                            __version__, version))
+                        'is too old. (You have {0}, but the application '
+                        'requires {1})'.format(__version__, version))
 
 
 def kivy_configure():
@@ -143,7 +142,7 @@ def kivy_register_post_configuration(callback):
 
 
 def kivy_usage():
-    '''Kivy Usage: %s [OPTION...]::
+    '''Kivy Usage: {0} [OPTION...]::
 
         -h, --help
             Prints this help message.
@@ -172,7 +171,7 @@ def kivy_usage():
         --size=640x480
             Size of window geometry.
     '''
-    print kivy_usage.__doc__ % (basename(sys.argv[0]))
+    print kivy_usage.__doc__.format(basename(sys.argv[0]))
 
 
 # Start !
@@ -180,7 +179,7 @@ if 'vim' in globals():
     Logger.setLevel(level=LOG_LEVELS.get('critical'))
 else:
     Logger.setLevel(level=LOG_LEVELS.get('info'))
-    Logger.info('Kivy v%s' % (__version__))
+    Logger.info('Kivy v{0}'.format(__version__))
 
 #: Global settings options for kivy
 kivy_options = {
@@ -195,7 +194,7 @@ kivy_options = {
 
 # Read environment
 for option in kivy_options:
-    key = 'KIVY_%s' % option.upper()
+    key = 'KIVY_' + option.upper()
     if key in environ:
         try:
             if type(kivy_options[option]) in (list, tuple):
@@ -204,7 +203,8 @@ for option in kivy_options:
                 kivy_options[option] = environ[key].lower() in \
                     ('true', '1', 'yes', 'yup')
         except Exception:
-            Logger.warning('Core: Wrong value for %s environment key' % key)
+            Logger.warning(
+                'Core: Wrong value for {0} environment key'.format(key))
             Logger.exception('')
 
 # Extract all needed path in kivy
@@ -288,7 +288,7 @@ if not environ.get('KIVY_DOC_INCLUDE'):
                  'display=', 'size=', 'rotate=', 'config=', 'debug'])
 
         except GetoptError, err:
-            Logger.error('Core: %s' % str(err))
+            Logger.error('Core: {0!r}'.format(err))
             kivy_usage()
             sys.exit(2)
 

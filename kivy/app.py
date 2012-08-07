@@ -92,7 +92,7 @@ configuration in your :meth:`App.build` method::
 
         def build(self):
             config = self.config
-            return Label(text='key1 is %s and key2 is %d' % (
+            return Label(text='key1 is {0} and key2 is {1}'.format(
                 config.get('section1', 'key1'),
                 config.getint('section1', 'key2')))
 
@@ -379,9 +379,9 @@ class App(EventDispatcher):
         clsname = self.__class__.__name__
         if clsname.endswith('App'):
             clsname = clsname[:-3]
-        filename = join(kv_directory, '%s.kv' % clsname.lower())
+        filename = join(kv_directory, '{0}.kv'.format(clsname.lower()))
         if not exists(filename):
-            Logger.debug('App: kv <%s> not found' % filename)
+            Logger.debug('App: kv {0!r} not found'.format(filename))
             return False
         root = Builder.load_file(filename)
         if root:
@@ -406,7 +406,7 @@ class App(EventDispatcher):
         else:
             return resource_find(self.icon)
 
-    def get_application_config(self, defaultpath='%(appdir)s/%(appname)s.ini'):
+    def get_application_config(self, defaultpath='{appdir}s/{appname}s.ini'):
         '''.. versionadded:: 1.0.7
 
         .. versionchanged:: 1.4.0
@@ -440,13 +440,13 @@ class App(EventDispatcher):
         '''
 
         if platform == 'android':
-            defaultpath = '/sdcard/.%(appname).ini'
+            defaultpath = '/sdcard/.{appname}.ini'
         elif platform == 'ios':
-            defaultpath = '~/Documents/%(appname).ini'
+            defaultpath = '~/Documents/{appname}.ini'
         elif platform == 'win':
             defaultpath = defaultpath.replace('/', sep)
-        return expanduser(defaultpath) % {
-            'appname': self.name, 'appdir': self.directory}
+        return expanduser(defaultpath).format(
+                appname=self.name, appdir=self.directory)
 
     def load_config(self):
         '''(internal) This function is used for returning a ConfigParser with
