@@ -237,7 +237,7 @@ class LabelBase(object):
             if valign == 'bottom':
                 y = self.height - self._internal_height
             elif valign == 'middle':
-                y = int((self.height - self._internal_height) / 2)
+                y = int((self.height - self._internal_height) / 2.)
         else:
             self._internal_height = 0
 

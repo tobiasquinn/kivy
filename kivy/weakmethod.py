@@ -12,7 +12,7 @@ http://code.activestate.com/recipes/81253/, based on the nicodemus version.
 '''
 
 import weakref
-import new
+import types
 
 
 class WeakMethod(object):
@@ -45,7 +45,7 @@ class WeakMethod(object):
             return None
         if self._obj is not None:
             # we have an instance: return a bound method
-            return new.instancemethod(self._func, self._obj(), self._class)
+            return types.MethodType(self._func, self._obj(), self._class)
         else:
             # we don't have an instance: return just the function
             return self._func

@@ -95,13 +95,13 @@ class AnchorLayout(Layout):
             if anchor_x == 'right':
                 x = x + width - (w + padding)
             if self.anchor_x == 'center':
-                x = x + (width / 2) - (w / 2)
+                x = x + (width / 2.) - (w / 2.)
             if anchor_y == 'bottom':
                 y = y + padding
             if anchor_y == 'top':
                 y = y + height - (h + padding)
             if anchor_y == 'center':
-                y = y + (height / 2) - (h / 2)
+                y = y + (height / 2.) - (h / 2.)
 
             reposition_child(c, pos=(x, y), size=(w, h))
 
