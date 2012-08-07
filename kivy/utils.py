@@ -130,14 +130,14 @@ def deprecated(func):
     @functools.wraps(func)
     def new_func(*args, **kwargs):
         file, line, caller = inspect.stack()[1][1:4]
-        caller_id = "%s:%s:%s" % (file, line, caller)
+        caller_id = "{0}:{1}:{2}".format(file, line, caller)
         # We want to print deprecated warnings only once:
         if caller_id not in DEPRECATED_CALLERS:
             DEPRECATED_CALLERS.append(caller_id)
             warning = (
-                'Call to deprecated function %s in %s line %d.'
-                'Called from %s line %d'
-                ' by %s().') % (
+                'Call to deprecated function {0} in {1} line {2}.'
+                'Called from {3} line {4}'
+                ' by {5}().').format(
                 func.__name__,
                 func.func_code.co_filename,
                 func.func_code.co_firstlineno + 1,
@@ -245,8 +245,8 @@ class OrderedDict(dict, DictMixin):
 
     def __repr__(self):
         if not self:
-            return '%s()' % (self.__class__.__name__, )
-        return '%s(%r)' % (self.__class__.__name__, self.items())
+            return '{0}()'.format(self.__class__.__name__, )
+        return '{0}({1})'.format(self.__class__.__name__, self.items())
 
     def copy(self):
         return self.__class__(self)
