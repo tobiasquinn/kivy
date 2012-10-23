@@ -46,6 +46,7 @@ except ImportError:
 # -----------------------------------------------------------------------------
 # Setup classes
 
+
 class KivyBuildExt(build_ext):
 
     def build_extensions(self):
@@ -117,6 +118,7 @@ else:
 
 # -----------------------------------------------------------------------------
 # declare flags
+
 
 def get_modulename_from_file(filename):
     filename = filename.replace(sep, '/')
@@ -297,7 +299,7 @@ setup(
     author_email='kivy-dev@googlegroups.com',
     url='http://kivy.org/',
     license='LGPL',
-    description='A software library for rapid development of ' + \
+    description='A software library for rapid development of ' +
                 'hardware-accelerated multitouch applications.',
     ext_modules=ext_modules,
     cmdclass=cmdclass,
@@ -325,6 +327,9 @@ setup(
         'kivy.tools',
         'kivy.tools.packaging',
         'kivy.tools.packaging.pyinstaller_hooks',
+        'kivy.tools.highlight',
+        'kivy.tools.highlight.pygments',
+        'kivy.tools.extensions',
         'kivy.uix', ],
     package_dir={'kivy': 'kivy'},
     package_data={'kivy': [
@@ -340,10 +345,14 @@ setup(
         'data/glsl/*.png',
         'data/glsl/*.vs',
         'data/glsl/*.fs',
+        'tools/highlight/*.vim',
+        'tools/highlight/*.el',
         'tools/packaging/README.txt',
         'tools/packaging/win32/kivy.bat',
         'tools/packaging/win32/kivyenv.sh',
         'tools/packaging/win32/README.txt',
+        'tools/packaging/osx/Info.plist',
+        'tools/packaging/osx/InfoPlist.strings',
         'tools/packaging/osx/kivy.sh']},
     data_files=examples.items(),
     classifiers=[

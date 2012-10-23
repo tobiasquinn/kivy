@@ -4,10 +4,15 @@ Test properties attached to a widget
 
 import unittest
 from kivy.event import EventDispatcher
+from functools import partial
+
 
 class TestProperty(EventDispatcher):
     pass
+
+
 wid = TestProperty()
+
 
 class PropertiesTestCase(unittest.TestCase):
 
@@ -85,11 +90,11 @@ class PropertiesTestCase(unittest.TestCase):
         a.set(wid, 99)
         self.assertEqual(a.get(wid), 99)
 
-        try:
-            a.set(wid, '')  # string shouldn't be accepted
-            self.fail('number accept string, fail.')
-        except ValueError:
-            pass
+        #try:
+        #    a.set(wid, '')  # string shouldn't be accepted
+        #    self.fail('number accept string, fail.')
+        #except ValueError:
+        #    pass
 
     def test_listcheck(self):
         from kivy.properties import ListProperty
@@ -260,3 +265,109 @@ class PropertiesTestCase(unittest.TestCase):
         observe_called = 0
         x.get(wid).update({'bleh': 5})
         self.assertEqual(observe_called, 1)
+
+    def test_aliasproperty_with_cache(self):
+        from kivy.properties import NumericProperty, AliasProperty
+        global observe_called
+
+        class CustomAlias(EventDispatcher):
+            basevalue = NumericProperty(1)
+
+            def _get_prop(self):
+                global observe_called
+                observe_called += 1
+                return self.basevalue * 2
+
+            def _set_prop(self, value):
+                self.basevalue = value / 2
+
+            prop = AliasProperty(_get_prop, _set_prop,
+                    bind=('basevalue', ), cache=True)
+
+        # initial checks
+        wid = CustomAlias()
+        self.assertEqual(observe_called, 0)
+        self.assertEqual(wid.basevalue, 1)
+        self.assertEqual(observe_called, 0)
+
+        # first call, goes in cache
+        self.assertEqual(wid.prop, 2)
+        self.assertEqual(observe_called, 1)
+
+        # second call, cache used
+        self.assertEqual(wid.prop, 2)
+        self.assertEqual(observe_called, 1)
+
+        # change the base value, should trigger an update for the cache
+        wid.basevalue = 4
+        self.assertEqual(observe_called, 2)
+
+        # now read the value again, should use the cache too
+        self.assertEqual(wid.prop, 8)
+        self.assertEqual(observe_called, 2)
+
+        # change the prop itself, should trigger an update for the cache
+        wid.prop = 4
+        self.assertEqual(observe_called, 3)
+        self.assertEqual(wid.basevalue, 2)
+        self.assertEqual(wid.prop, 4)
+        self.assertEqual(observe_called, 3)
+
+    def test_bounded_numeric_property(self):
+        from kivy.properties import BoundedNumericProperty
+
+        bnp = BoundedNumericProperty(0.0, min=0.0, max=3.5)
+
+        bnp.link(wid, 'bnp')
+
+        bnp.set(wid, 1)
+        bnp.set(wid, 0.0)
+        bnp.set(wid, 3.1)
+        bnp.set(wid, 3.5)
+        self.assertRaises(ValueError, partial(bnp.set, wid, 3.6))
+        self.assertRaises(ValueError, partial(bnp.set, wid, -3))
+
+    def test_bounded_numeric_property_error_value(self):
+        from kivy.properties import BoundedNumericProperty
+
+        bnp = BoundedNumericProperty(0, min=-5, max=5, errorvalue=1)
+        bnp.link(wid, 'bnp')
+
+        bnp.set(wid, 1)
+        self.assertEqual(bnp.get(wid), 1)
+
+        bnp.set(wid, 5)
+        self.assertEqual(bnp.get(wid), 5)
+
+        bnp.set(wid, 6)
+        self.assertEqual(bnp.get(wid), 1)
+
+        bnp.set(wid, -5)
+        self.assertEqual(bnp.get(wid), -5)
+
+        bnp.set(wid, -6)
+        self.assertEqual(bnp.get(wid), 1)
+
+    def test_bounded_numeric_property_error_handler(self):
+        from kivy.properties import BoundedNumericProperty
+
+        bnp = BoundedNumericProperty(
+            0, min=-5, max=5,
+            errorhandler=lambda x: 5 if x > 5 else -5)
+
+        bnp.link(wid, 'bnp')
+
+        bnp.set(wid, 1)
+        self.assertEqual(bnp.get(wid), 1)
+
+        bnp.set(wid, 5)
+        self.assertEqual(bnp.get(wid), 5)
+
+        bnp.set(wid, 10)
+        self.assertEqual(bnp.get(wid), 5)
+
+        bnp.set(wid, -5)
+        self.assertEqual(bnp.get(wid), -5)
+
+        bnp.set(wid, -10)
+        self.assertEqual(bnp.get(wid), -5)

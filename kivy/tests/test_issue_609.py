@@ -1,4 +1,4 @@
-from common import GraphicUnitTest
+from kivy.tests.common import GraphicUnitTest
 
 
 class Issue609(GraphicUnitTest):
@@ -9,7 +9,7 @@ class Issue609(GraphicUnitTest):
 
         lbl = Label(text="TextToTest")
         lbl.bind(text_size=lbl.setter('size'))
-        mrkp = Label(text="TextToTest", markup = True)
+        mrkp = Label(text="TextToTest", markup=True)
         mrkp.bind(text_size=mrkp.setter('size'))
 
         grid = GridLayout(rows=1, size_hint=(1, 1))

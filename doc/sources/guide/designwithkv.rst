@@ -6,6 +6,9 @@
 Designing with the Kivy Language
 ================================
 
+The code goes in main.py
+~~~~~~~~~~~~~~~~~~~~~~~~
+
 Let's start with a little example. First, the Python file named `main.py`:
 
 .. include:: ../../../examples/guide/designwithkv/main.py
@@ -20,6 +23,9 @@ In addition, we are creating a ``do_action()`` method, that will use both of
 these properties. It will change the ``info`` text, and change text in the
 ``label_wid`` widget.
 
+The layout goes in controller.kv
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Executing this application without a corresponding `.kv` file will work, but
 nothing will be shown on the screen. This is expected, because the
 ``Controller`` class has no widgets in it, it's just a ``FloatLayout``. We can
@@ -27,8 +33,9 @@ create the UI around the ``Controller`` class in a file named `controller.kv`,
 which will be loaded when we run the ``ControllerApp``. How this is done and
 what files are loaded is described in the :func:`kivy.app.App.load_kv` method.
 
-.. include:: ../../../examples/guide/designwithkv/controller.kv
-    :literal:
+.. literalinclude:: ../../../examples/guide/designwithkv/controller.kv
+    :language: kv
+    :linenos:
 
 One label and one button in a vertical ``BoxLayout``. Seems very simple. There
 are 3 things going on here:
@@ -52,7 +59,9 @@ are 3 things going on here:
           the current widget.
 
         * You can use any id declared in the rule the same as ``root`` and
-          ``self``. For example, you could do this in the ``on_press()``::
+          ``self``. For example, you could do this in the ``on_press()``:
+
+        .. code-block:: kv
 
             Button:
                 on_press: root.do_action(); my_custom_label.font_size = 18

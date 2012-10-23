@@ -84,7 +84,7 @@ pairs to the properties of that class, i.e., "title": "Windows" sets the
 :data:`SettingTitle.title` property to "Windows".
 
 To load the JSON example to a :class:`Settings` instance, use the
-:data:`Settings.add_json_panel` method. It will automatically instantiate
+:meth:`Settings.add_json_panel` method. It will automatically instantiate
 :class:`SettingsPanel` and add it to :class:`Settings`::
 
     from kivy.config import ConfigParser
@@ -455,9 +455,15 @@ class SettingNumeric(SettingString):
     '''
 
     def _validate(self, instance):
+        # we know the type just by checking if there is a '.' in the original
+        # value
+        is_float = '.' in str(self.value)
         self._dismiss()
         try:
-            self.value = int(self.textinput.text)
+            if is_float:
+                self.value = float(self.textinput.text)
+            else:
+                self.value = int(self.textinput.text)
         except ValueError:
             return
 

@@ -84,7 +84,7 @@ reference::
     def print_it(instance, value):
         print 'User clicked on', value
     widget = Label(text='Hello [ref=world]World[/ref]', markup=True)
-    widget.on_ref_press(print_it)
+    widget.bind(on_ref_press=print_it)
 
 For a better rendering, you could add a color for the reference. Replace the
 ``text=`` in the previous example with::
@@ -148,6 +148,9 @@ class Label(Widget):
             # markup have change, we need to change our rendering method.
             d = Label._font_properties
             dkw = dict(zip(d, [getattr(self, x) for x in d]))
+            # XXX font_size core provider compatibility
+            if Label.font_size.get_format(self) == 'px':
+                dkw['font_size'] *= 1.333
             if markup:
                 self._label = CoreMarkupLabel(**dkw)
             else:
@@ -162,6 +165,11 @@ class Label(Widget):
                 self._label.text = value
             elif name == 'text_size':
                 self._label.usersize = value
+            elif name == 'font_size':
+                # XXX font_size core provider compatibility
+                if Label.font_size.get_format(self) == 'px':
+                    value *= 1.333
+                self._label.options[name] = value
             else:
                 self._label.options[name] = value
         self._trigger_texture()
@@ -169,7 +177,7 @@ class Label(Widget):
     def texture_update(self, *largs):
         '''Force texture recreation with the current Label properties.
 
-        After this function call, the :data:`texture` and :data`texture_size`
+        After this function call, the :data:`texture` and :data:`texture_size`
         will be updated in this order.
         '''
         self.texture = None
@@ -266,7 +274,7 @@ class Label(Widget):
     'DroidSans'.
     '''
 
-    font_size = NumericProperty(12)
+    font_size = NumericProperty('12px')
     '''Font size of the text, in pixels.
 
     :data:`font_size` is a :class:`~kivy.properties.NumericProperty`, default to
@@ -328,7 +336,8 @@ class Label(Widget):
 
         This doesn't change the position of the text texture of the Label
         (centered), only the position of the text in this texture. You probably
-        want to bind the size of the Label to the texture_size or set a text_size.
+        want to bind the size of the Label to the :data:`texture_size` or set a
+        :data:`text_size`.
     '''
 
     valign = OptionProperty('bottom', options=['bottom', 'middle', 'top'])
@@ -341,7 +350,8 @@ class Label(Widget):
 
         This doesn't change the position of the text texture of the Label
         (centered), only the position of the text in this texture. You probably
-        want to bind the size of the Label to the texture_size or set a text_size.
+        want to bind the size of the Label to the :data:`texture_size` or set a
+        :data:`text_size`.
     '''
 
     color = ListProperty([1, 1, 1, 1])
@@ -353,9 +363,9 @@ class Label(Widget):
 
     texture = ObjectProperty(None, allownone=True)
     '''Texture object of the text.
-    The text is rendered automatically when a property changes. The OpenGL texture
-    created in this operation is stored in this property. You can use this
-    :data:`texture` for any graphics elements.
+    The text is rendered automatically when a property changes. The OpenGL
+    texture created in this operation is stored in this property. You can use
+    this :data:`texture` for any graphics elements.
 
     Depending on the texture creation, the value will be a
     :class:`~kivy.graphics.texture.Texture` or
@@ -365,7 +375,7 @@ class Label(Widget):
 
         The :data:`texture` update is scheduled for the next frame. If you need
         the texture immediately after changing a property, you have to call
-        the :func:`texture_update` function before accessing :data:`texture`::
+        the :meth:`texture_update` method before accessing :data:`texture`::
 
             l = Label(text='Hello world')
             # l.texture is good
@@ -383,9 +393,9 @@ class Label(Widget):
 
     .. warning::
 
-        The data:`texture_size` is set after the :data:`texture` property. If
+        The :data:`texture_size` is set after the :data:`texture` property. If
         you listen for changes to :data:`texture`, :data:`texture_size` will not
-        be up-to-date in your callback. Bind to data:`texture_size` instead.
+        be up-to-date in your callback. Bind to :data:`texture_size` instead.
     '''
 
     mipmap = BooleanProperty(False)
@@ -400,9 +410,9 @@ class Label(Widget):
 
     shorten = BooleanProperty(False)
     '''
-    Indicates whether the label should attempt to shorten its textual contents as
-    much as possible if a `text_size` is given. Setting this to True without an
-    appropriately set `text_size` will lead to unexpected results.
+    Indicates whether the label should attempt to shorten its textual contents
+    as much as possible if a `text_size` is given. Setting this to True without
+    an appropriately set `text_size` will lead to unexpected results.
 
     :data:`shorten` is a :class:`~kivy.properties.BooleanProperty`, default to
     False.
@@ -436,10 +446,10 @@ class Label(Widget):
 
         {'hello': ((64, 0, 78, 16), )}
 
-    You know that the reference "hello" have a bounding box set at (x1, y1,
-    x2, y2). The current Label implementation uses these references if they exist
-    in your markup text, automatically doing the collision with the touch, and
-    dispatching an ``on_ref_press`` event.
+    You know that the reference "hello" have a bounding box set at (x1, y1, x2,
+    y2). The current Label implementation uses these references if they exist in
+    your markup text, automatically doing the collision with the touch, and
+    dispatching an `on_ref_press` event.
 
     You can bind a ref event like this::
 

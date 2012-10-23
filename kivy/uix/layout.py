@@ -15,8 +15,10 @@ The :class:`Layout` class itself cannot be used directly. You must use one of:
 Understanding `size_hint` Property in `Widget`
 ----------------------------------------------
 
-The :data:`~kivy.uix.Widget.size_hint` is mostly used in Layout. This is the
-size in percent, not in pixels. The format is::
+The :data:`~kivy.uix.Widget.size_hint` is a tupple of values used by
+layouts to manage the size of their children. It indicate the size
+relatively to the layout size, instead of absolutely (in
+pixels/points/cm/etc). The format is::
 
     widget.size_hint = (width_percent, height_percent)
 
@@ -34,6 +36,10 @@ height, do::
 
     widget.size_hint = (None, 0.3)
     widget.width = 250
+
+.. versionchanged:: 1.4.1
+    `reposition_child` internal method (made public by mistake) have
+    been removed.
 
 '''
 
@@ -54,17 +60,10 @@ class Layout(Widget):
         self._trigger_layout = Clock.create_trigger(self.do_layout, -1)
         super(Layout, self).__init__(**kwargs)
 
-    def reposition_child(self, child, **kwargs):
-        '''Force the child to be repositioned on the screen. This method is used
-        internally in boxlayout.
-        '''
-        for prop in kwargs:
-            child.__setattr__(prop, kwargs[prop])
-
     def do_layout(self, *largs):
         '''This function is called when a layout is needed, by a trigger.
         If you are doing a new Layout subclass, don't call this function
-        directly, use :data:`_trigger_layout` instead.
+        directly, use :meth:`_trigger_layout` instead.
 
         .. versionadded:: 1.0.8
         '''
@@ -72,13 +71,12 @@ class Layout(Widget):
 
     def add_widget(self, widget, index=0):
         widget.bind(
-            size = self._trigger_layout,
-            size_hint = self._trigger_layout)
+            size=self._trigger_layout,
+            size_hint=self._trigger_layout)
         return super(Layout, self).add_widget(widget, index)
 
     def remove_widget(self, widget):
         widget.unbind(
-            size = self._trigger_layout,
-            size_hint = self._trigger_layout)
+            size=self._trigger_layout,
+            size_hint=self._trigger_layout)
         return super(Layout, self).remove_widget(widget)
-

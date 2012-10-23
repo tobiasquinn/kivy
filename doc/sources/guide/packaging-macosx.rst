@@ -8,33 +8,20 @@ MacOSX 10.6, using the portable package of Kivy.
 The package will be only for 64 bits MacOSX. We have no way to do 32 bits right
 now, since we are not supporting 32 bits MacOSX platform.
 
+.. _mac_osx_requirements:
+
 Requirements
 ------------
 
     * Latest Kivy (the whole portable package, not only the github sourcecode)
-    * PyInstaller 1.5: http://www.pyinstaller.org/#Downloads
+    * PyInstaller 2.0: http://www.pyinstaller.org/#Downloads
 
-Install and configure PyInstaller
----------------------------------
+Ensure you've installed Kivy DMG and installed make-symlink script. `kivy`
+command must be accessible from the command line.
 
-First, we need to correctly setup pyinstaller for 64 bits if you want to be
-able to package your Kivy application.
+Then, download and decompress the PyInstaller 2.0.
 
-#. Decompress the PyInstaller
-#. Open a console, and go to the pyinstaller-1.5 directory
-#. Execute the following::
-
-    VERSIONER_PYTHON_PREFER_32_BIT=yes python Configure.py
-    mkdir -p support/loader/Darwin-64bit
-    pushd support/loader/Darwin-64bit
-    wget http://www.pyinstaller.org/export/d9bfa9a291cbc0fe77a99e38acb92c79631df5b8/project/support/loader/Darwin-64bit/run
-    wget http://www.pyinstaller.org/export/d9bfa9a291cbc0fe77a99e38acb92c79631df5b8/project/support/loader/Darwin-64bit/run_d
-    wget http://www.pyinstaller.org/export/d9bfa9a291cbc0fe77a99e38acb92c79631df5b8/project/support/loader/Darwin-64bit/runw
-    wget http://www.pyinstaller.org/export/d9bfa9a291cbc0fe77a99e38acb92c79631df5b8/project/support/loader/Darwin-64bit/runw_d
-    chmod +x run*
-    popd
-
-Now, your pyinstaller installation is ready to be used !
+.. _mac_Create-the-spec-file:
 
 Create the spec file
 --------------------
@@ -46,8 +33,8 @@ file is named `main.py`. Replace both path/filename according to your system.
 #. Open a console
 #. Go to the pyinstaller directory, and create the initial specs::
 
-    cd pyinstaller-1.5
-    python Makespec.py --name touchtracer ../kivy/examples/demo/touchtracer/main.py
+    cd pyinstaller-2.0
+    kivy pyinstaller.py --name touchtracer ../kivy/examples/demo/touchtracer/main.py
 
 #. The specs file is located on `touchtracer/touchtracer.spec` inside the
    pyinstaller directory. Now we need to edit the spec file to add kivy hooks
@@ -57,6 +44,9 @@ file is named `main.py`. Replace both path/filename according to your system.
 
     from kivy.tools.packaging.pyinstaller_hooks import install_hooks
     install_hooks(globals())
+
+   In the `Analysis()` command, remove the `hookspath=None` parameters.
+   Otherwise, the kivy package hook will not be used at all.
 
    Then, you need to change the `COLLECT()` call to add the data of touchtracer
    (`touchtracer.kv`, `particle.png`, ...). Change the line to add a Tree()
@@ -70,14 +60,16 @@ file is named `main.py`. Replace both path/filename according to your system.
 
 #. This is done, your spec is ready to be executed !
 
+.. _Build the spec and create DMG:
+
 Build the spec and create DMG
 -----------------------------
 
 #. Open a console
 #. Go to the pyinstaller directory, and build the spec::
 
-    cd pyinstaller-1.5
-    python Build.py touchtracer/touchtracer.spec
+    cd pyinstaller-2.0
+    kivy pyinstaller.py touchtracer/touchtracer.spec
 
 #. The package will be the `touchtracer/dist/touchtracer` directory. Rename it to .app::
 
@@ -87,4 +79,28 @@ Build the spec and create DMG
     popd
 
 #. You will have a Touchtracer.dmg available in the `touchtracer/dist` directory
+
+Including Gstreamer
+-------------------
+
+If you wanted to read video files, audio, or camera, you would need to include
+gstreamer. By default, only pygst/gst are discovered, but all the gst plugins
+and libraries are missing. You need to include them in your .spec file too, by
+adding one more argument to the `COLLECT()` method::
+
+    import os
+    gst_plugin_path = os.environ.get('GST_PLUGIN_PATH').split(':')[0]
+
+    coll = COLLECT( exe, Tree('../kivy/examples/demo/touchtracer/'),
+                   Tree(join(gst_plugin_path, '..')),
+                   a.binaries,
+                   #...
+                   )
+
+For Kivy.app < 1.4.1, you also need to update one script included in our
+Kivy.app. Go to
+`/Applications/Kivy.app/Contents/Resources/kivy/kivy/tools/packaging/pyinstaller_hooks/`,
+and edit the file named `rt-hook-kivy.py`, and add this line at the end::
+
+    environ['GST_PLUGIN_PATH'] = join(root, '..', 'gst-plugins')
 

@@ -147,13 +147,13 @@ class LabelBase(object):
                 else:
                     fonts.append(font)
             else:
-                fonts.append(fonts[-1]) # add regular font to list again
+                fonts.append(fonts[-1])  # add regular font to list again
 
         LabelBase._fonts[name] = tuple(fonts)
 
     def resolve_font_name(self):
         options = self.options
-        fontname = self.options['font_name']
+        fontname = options['font_name']
         fonts = self._fonts
         fontscache = self._fonts_cache
 
@@ -211,7 +211,7 @@ class LabelBase(object):
             return u'{0}...{1}'.format(text[:segment].strip(),
                 text[-segment:].strip())
         else:
-            segment = max_letters - 3 # length of '...'
+            segment = max_letters - 3  # length of '...'
             return u'{0}...'.format(text[:segment].strip())
 
     def render(self, real=False):
@@ -273,7 +273,6 @@ class LabelBase(object):
                     if not glyph in cache:
                         cache[glyph] = get_extents(glyph)
 
-
             # Shorten the text that we actually display
             text = self.text
             if options['shorten'] and get_extents(text)[0] > uw:
@@ -287,6 +286,8 @@ class LabelBase(object):
 
                 # calculate the word width
                 ww, wh = 0, 0
+                if word == '':
+                    ww, wh = get_extents(' ')
                 for glyph in word:
                     gw, gh = cache[glyph]
                     ww += gw
@@ -395,19 +396,18 @@ class LabelBase(object):
                      sz[1] + self.options['padding_y'] * 2
 
     def _get_text(self):
-        return self._text
+        try:
+            return self._text.decode('utf8')
+        except AttributeError:
+            # python 3 support
+            return str(self._text)
+        except UnicodeEncodeError:
+            return self._text
 
     def _set_text(self, text):
-        if text == self._text:
-            return
-        # try to automaticly decode unicode
-        try:
-            self._text = text.decode('utf8')
-        except:
-            try:
-                self._text = str(text)
-            except:
-                self._text = text
+        if text != self._text:
+            self._text = text
+
     text = property(_get_text, _set_text, doc='Get/Set the text')
     label = property(_get_text, _set_text, doc='Get/Set the text')
 

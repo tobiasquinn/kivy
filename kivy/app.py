@@ -281,6 +281,7 @@ class App(EventDispatcher):
     _running_app = None
 
     def __init__(self, **kwargs):
+        App._running_app = self
         self._app_directory = None
         self._app_name = None
         self._app_settings = None
@@ -299,8 +300,8 @@ class App(EventDispatcher):
         #: configuration. Can be used to query some config token in the build()
         self.config = None
 
-        #: Root widget set by the :func:`build` method or by the
-        #: :func:`load_kv` method if the kv file contains a root widget.
+        #: Root widget set by the :meth:`build` method or by the
+        #: :meth:`load_kv` method if the kv file contains a root widget.
         self.root = None
 
     def build(self):
@@ -537,10 +538,13 @@ class App(EventDispatcher):
                 window.set_icon(icon)
             self._install_settings_keys(window)
 
-        App._running_app = self
         self.dispatch('on_start')
         runTouchApp()
         self.dispatch('on_stop')
+
+        # Clear the window children
+        for child in window.children:
+            window.remove_widget(child)
 
     def stop(self, *largs):
         '''Stop the application.

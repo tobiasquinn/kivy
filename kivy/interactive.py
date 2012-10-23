@@ -43,7 +43,7 @@ can be quickly listed by using the '.' operator and pressing 'tab.'  Try this
 code in an Ipython shell.::
 
     from kivy.interactive import InteractiveLauncher
-    from kivy.app imort App
+    from kivy.app import App
     from kivy.uix.widget import Widget
     from kivy.graphics import Color, Ellipse
 
@@ -210,7 +210,7 @@ class SafeMembrane(object):
             return SafeMembrane(r)
 
     def __getattribute__(self, attr, oga=object.__getattribute__):
-        if attr.startswith('__') or attr =='_ref':
+        if attr.startswith('__') or attr == '_ref':
             subject = oga(self, '_ref')
             if attr == '_ref':
                 return subject

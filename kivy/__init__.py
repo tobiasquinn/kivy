@@ -28,7 +28,7 @@ __all__ = (
     'kivy_config_fn', 'kivy_usermodules_dir',
 )
 
-__version__ = '1.4.0-dev'
+__version__ = '1.4.2-dev'
 
 import sys
 import shutil
@@ -43,7 +43,7 @@ __kivy_post_configuration = []
 
 
 if platform() == 'macosx' and sys.maxint < 9223372036854775807:
-    r ='''Unsupported Python version detected!:
+    r = '''Unsupported Python version detected!:
     Kivy requires a 64 bit version of Python to run on OS X. We strongly advise
     you to use the version of Python that is provided by Apple (don't use ports,
     fink or homebrew unless you know what you're doing).
@@ -113,6 +113,8 @@ def require(version):
         Logger.warning('Application requested a -dev version of Kivy. '
                        '(You have {0}, but the application requires '
                        '{1})'.format(__version__, version))
+                       '(You have %s, but the application requires %s)' % (
+                           __version__, version))
     # not tag rev (-alpha-1, -beta-x) allowed.
     if tagrev is not None:
         raise Exception('Revision format must not contain any tagrevision')
@@ -170,6 +172,8 @@ def kivy_usage():
             Save current Kivy configuration.
         --size=640x480
             Size of window geometry.
+        --dpi=96
+            Manually overload the Window DPI (for testing only.)
     '''
     print kivy_usage.__doc__.format(basename(sys.argv[0]))
 
@@ -198,7 +202,7 @@ for option in kivy_options:
     if key in environ:
         try:
             if type(kivy_options[option]) in (list, tuple):
-                kivy_options[option] = (str(environ[key]), )
+                kivy_options[option] = environ[key].split(',')
             else:
                 kivy_options[option] = environ[key].lower() in \
                     ('true', '1', 'yes', 'yup')
@@ -273,7 +277,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     Logger.setLevel(level=level)
     Logger.setLevel(level=LOG_LEVELS.get('debug'))
 
-
     # Can be overrided in command line
     if 'KIVY_UNITTEST' not in environ:
 
@@ -285,7 +288,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
             opts, args = getopt(sys_argv[1:], 'hp:fkawFem:sr:dc:',
                 ['help', 'fullscreen', 'windowed', 'fps', 'event',
                  'module=', 'save', 'fake-fullscreen', 'auto-fullscreen',
-                 'display=', 'size=', 'rotate=', 'config=', 'debug'])
+                 'display=', 'size=', 'rotate=', 'config=', 'debug',
+                 'dpi='])
 
         except GetoptError, err:
             Logger.error('Core: {0!r}'.format(err))
@@ -297,7 +301,6 @@ if not environ.get('KIVY_DOC_INCLUDE'):
     else:
         opts = []
         args = []
-
 
     need_save = False
     for opt, arg in opts:
@@ -355,6 +358,8 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         elif opt in ('-d', '--debug'):
             level = LOG_LEVELS.get('debug')
             Logger.setLevel(level=level)
+        elif opt == '--dpi':
+            environ['KIVY_DPI'] = arg
 
     if need_save and 'KIVY_NO_CONFIG' not in environ:
         try:
@@ -366,11 +371,11 @@ if not environ.get('KIVY_DOC_INCLUDE'):
         Logger.info('Core: Kivy configuration saved.')
         sys.exit(0)
 
-# android hooks: force fullscreen and add android touch input provider
-if platform() == 'android':
-    from kivy.config import Config
-    Config.set('graphics', 'fullscreen', 'auto')
-    Config.remove_section('input')
-    Config.add_section('input')
-    Config.set('input', 'androidtouch', 'android')
+    # android hooks: force fullscreen and add android touch input provider
+    if platform() == 'android':
+        from kivy.config import Config
+        Config.set('graphics', 'fullscreen', 'auto')
+        Config.remove_section('input')
+        Config.add_section('input')
+        Config.set('input', 'androidtouch', 'android')
 

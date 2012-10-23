@@ -193,7 +193,7 @@ class WindowPygame(WindowBase):
         is_osx = platform() == 'darwin'
         if key == 27 or (is_osx and key in (113, 119) and modifier == 1024):
             stopTouchApp()
-            self.close()  #not sure what to do here
+            self.close()  # not sure what to do here
             return True
         super(WindowPygame, self).on_keyboard(key, scancode,
             codepoint=codepoint, modifier=modifier)
@@ -312,8 +312,6 @@ class WindowPygame(WindowBase):
                 else:
                     pass
 
-        # force deletion of window
-        pygame.display.quit()
 
     #
     # Pygame wrapper

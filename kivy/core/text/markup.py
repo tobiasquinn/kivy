@@ -198,6 +198,7 @@ class MarkupLabel(MarkupLabelBase):
 
         # verify that each glyph have size
         glyphs = list(set(word))
+        glyphs.append(' ')
         get_extents = self.get_extents
         for glyph in glyphs:
             if not glyph in cache:
@@ -216,6 +217,7 @@ class MarkupLabel(MarkupLabelBase):
         uw, uh = self.text_size
 
         # split the word
+        default_line_height = get_extents(' ')[1]
         for part in re.split(r'( |\n)', word):
 
             if part == '':
@@ -223,7 +225,7 @@ class MarkupLabel(MarkupLabelBase):
 
             if part == '\n':
                 # put a new line!
-                line = [0, 0, []]
+                line = [0, default_line_height, []]
                 lines.append(line)
                 continue
 
@@ -266,7 +268,7 @@ class MarkupLabel(MarkupLabelBase):
         y = 0
         w, h = self._size
         refs = self._refs
-        no_of_lines = len(self._lines)
+        txt_height = sum(line[1] for line in self._lines)
 
         for line in self._lines:
             lh = line[1]
@@ -283,10 +285,9 @@ class MarkupLabel(MarkupLabelBase):
             # vertical alignement
             if y == 0:
                 if av == 1:
-                    y = int((h - (lh*no_of_lines))/2)
+                    y = int((h - txt_height) / 2)
                 elif av == 2:
-                    y = h - (lh*(no_of_lines))
-
+                    y = h - (txt_height)
 
             for pw, ph, part, options in line[2]:
                 self.options = options
@@ -310,26 +311,18 @@ class MarkupLabel(MarkupLabelBase):
         # create texture is necessary
         texture = self.texture
         mipmap = self.options['mipmap']
-        if texture is None:
-            if data is None:
-                if platform() in ('android', 'ios'):
-                    colorfmt = 'rgba'
-                else:
-                    colorfmt = 'luminance_alpha'
-                texture = Texture.create(
-                        size=self.size, colorfmt=colorfmt,
-                        mipmap=mipmap)
-            else:
-                texture = Texture.create_from_data(data, mipmap=mipmap)
+        if texture is None or \
+                self.width != texture.width or \
+                self.height != texture.height:
+            texture = Texture.create_from_data(data, mipmap=mipmap)
+            data = None
             texture.flip_vertical()
-        elif self.width != texture.width or self.height != texture.height:
-            if data is None:
-                texture = Texture.create(size=self.size, mipmap=mipmap)
-            else:
-                texture = Texture.create_from_data(data, mipmap=mipmap)
-            texture.flip_vertical()
+            texture.add_reload_observer(self._texture_refresh)
+            self.texture = texture
 
         # update texture
-        self.texture = texture
-        self.texture.blit_data(data)
+        # If the text is 1px width, usually, the data is black.
+        # Don't blit that kind of data, otherwise, you have a little black bar.
+        if data is not None and data.width > 1:
+            texture.blit_data(data)
 

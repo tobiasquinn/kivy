@@ -6,6 +6,12 @@ and why you'd want to use it.
 It goes on with a discussion of the architecture and shows you how to create
 stunning applications in short time using the framework.
 
+.. ifconfig:: format == 'html'
+
+	.. toctree::
+		:maxdepth: 1
+
+		gettingstarted/index
 
 .. toctree::
     :maxdepth: 2
@@ -18,5 +24,10 @@ stunning applications in short time using the framework.
     faq
     contact
 
+
+.. toctree::
+	:maxdepth: 3
+
+	guide2-index
 
 .. include:: api-index.rst

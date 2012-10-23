@@ -318,13 +318,13 @@ put many Image that will react to on_touch_down::
  root.create_image()
 
             Image:
-                nput: 'data/video.png'
+                source: 'data/video.png'
                 size: self.texture_size
                 size_hint: None, None
                 on_touch_down: self.collide_point(*args[1].pos) and\
  root.create_video()
 
-We can see that the side and size_hint attribute are exactly the same.
+We can see that the size and size_hint attribute are exactly the same.
 More than that, the callback in on_touch_down and the image are changing.
 Theses can be the variable part of the template that we can put into a context.
 Let's try to create a template for the Image::
@@ -475,6 +475,51 @@ lang_key = re.compile('([a-zA-Z_]+)')
 lang_keyvalue = re.compile('([a-zA-Z_][a-zA-Z0-9_.]*\.[a-zA-Z0-9_.]+)')
 
 
+class ProxyApp(object):
+    # proxy app object
+    # taken from http://code.activestate.com/recipes/496741-object-proxying/
+
+    __slots__ = ['_obj']
+
+    def __init__(self):
+        object.__init__(self)
+        object.__setattr__(self, '_obj', None)
+
+    def _ensure_app(self):
+        app = object.__getattribute__(self, '_obj')
+        if app is None:
+            from kivy.app import App
+            app = App.get_running_app()
+            object.__setattr__(self, '_obj', app)
+        return app
+
+    def __getattribute__(self, name):
+        object.__getattribute__(self, '_ensure_app')()
+        return getattr(object.__getattribute__(self, '_obj'), name)
+
+    def __delattr__(self, name):
+        object.__getattribute__(self, '_ensure_app')()
+        delattr(object.__getattribute__(self, '_obj'), name)
+
+    def __setattr__(self, name, value):
+        object.__getattribute__(self, '_ensure_app')()
+        setattr(object.__getattribute__(self, '_obj'), name, value)
+
+    def __nonzero__(self):
+        object.__getattribute__(self, '_ensure_app')()
+        return bool(object.__getattribute__(self, '_obj'))
+
+    def __str__(self):
+        object.__getattribute__(self, '_ensure_app')()
+        return str(object.__getattribute__(self, '_obj'))
+
+    def __repr__(self):
+        object.__getattribute__(self, '_ensure_app')()
+        return repr(object.__getattribute__(self, '_obj'))
+
+global_idmap['app'] = ProxyApp()
+
+
 class ParserException(Exception):
     '''Exception raised when something wrong happened in a kv file.
     '''
@@ -488,12 +533,12 @@ class ParserException(Exception):
         sc = ['...']
         sc += ['   %4d:%s' % x for x in sourcecode[sc_start:line]]
         sc += ['>> %4d:%s' % (line, sourcecode[line][1])]
-        sc += ['   %4d:%s' % x for x in sourcecode[line+1:sc_stop]]
+        sc += ['   %4d:%s' % x for x in sourcecode[line + 1:sc_stop]]
         sc += ['...']
         sc = '\n'.join(sc)
 
         message = 'Parser: File "%s", line %d:\n%s\n%s' % (
-            self.filename, self.line+1, sc, message)
+                self.filename, self.line + 1, sc, message)
         super(ParserException, self).__init__(message)
 
 
@@ -507,7 +552,7 @@ class ParserRuleProperty(object):
     '''Represent a property inside a rule
     '''
 
-    __slots__ = ('ctx', 'line', 'name', 'value', 'co_value', \
+    __slots__ = ('ctx', 'line', 'name', 'value', 'co_value',
             'watched_keys', 'mode')
 
     def __init__(self, ctx, line, name, value):
@@ -559,8 +604,8 @@ class ParserRuleProperty(object):
     def __repr__(self):
         return '<ParserRuleProperty name=%r filename=%s:%d' \
                'value=%r watched_keys=%r>' % (
-                self.name, self.ctx.filename, self.line + 1,
-                self.value, self.watched_keys)
+                       self.name, self.ctx.filename, self.line + 1,
+                       self.value, self.watched_keys)
 
 
 class ParserRule(object):
@@ -825,7 +870,7 @@ class Parser(object):
             tmp = content.lstrip(' \t')
 
             # Replace any tab with 4 spaces
-            tmp = content[:len(content)-len(tmp)]
+            tmp = content[:len(content) - len(tmp)]
             tmp = tmp.replace('\t', '    ')
             count = len(tmp)
 
@@ -838,7 +883,7 @@ class Parser(object):
 
             # Level finished
             if count < indent:
-                return objects, lines[i-1:]
+                return objects, lines[i - 1:]
 
             # Current level, create an object
             elif count == indent:
@@ -1029,7 +1074,7 @@ class ParserSelectorName(ParserSelector):
         parents = ParserSelectorName.parents
         cls = widget.__class__
         if not cls in parents:
-            classes = [x.__name__.lower() for x in \
+            classes = [x.__name__.lower() for x in
                        [cls] + list(self.get_bases(cls))]
             parents[cls] = classes
         return self.key in parents[cls]
@@ -1299,6 +1344,10 @@ class BuilderBase(object):
                 idmap['self'] = widget_set
                 widget_set.bind(**{key: partial(custom_callback,
                     crule, idmap)})
+
+                #hack for on_parent
+                if crule.name == 'on_parent':
+                    Factory.Widget.parent.dispatch(widget_set)
 
         # rule finished, forget it
         del self.rulectx[rootrule]
