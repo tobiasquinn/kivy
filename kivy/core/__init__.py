@@ -90,11 +90,11 @@ def core_register_libs(category, libs):
                 continue
 
             # import module
-            __import__(name='%s.%s' % (category, lib),
+            __import__(name='kivy.core.{0}.{1}'.format(category, lib),
                         globals=globals(),
                         locals=locals(),
                         fromlist=[lib],
-                        level=-1)
+                        level=0)
 
         except Exception as e:
             Logger.warning('%s: Unable to use <%s> as loader!' %
