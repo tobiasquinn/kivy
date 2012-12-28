@@ -24,17 +24,17 @@ cdef class Shader:
 
     cdef void use(self)
     cdef void stop(self)
-    cdef void set_uniform(self, str name, value)
-    cdef void upload_uniform(self, str name, value)
+    cdef void set_uniform(self, str name, value) except *
+    cdef void upload_uniform(self, str name, value) except *
     cdef void upload_uniform_matrix(self, int loc, Matrix value)
-    cdef int get_uniform_loc(self, str name)
+    cdef int get_uniform_loc(self, str name) except *
     cdef void bind_attrib_locations(self)
-    cdef void build(self)
-    cdef void build_vertex(self)
-    cdef void build_fragment(self)
-    cdef void link_program(self)
+    cdef void build(self) except *
+    cdef void build_vertex(self) except *
+    cdef void build_fragment(self) except *
+    cdef void link_program(self) except *
     cdef int is_linked(self)
-    cdef ShaderSource compile_shader(self, char* source, int shadertype)
+    cdef ShaderSource compile_shader(self, str source, int shadertype)
     cdef str get_program_log(self, shader)
     cdef void process_message(self, str ctype, str message)
     cdef void reload(self)

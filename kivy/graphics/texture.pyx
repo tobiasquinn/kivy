@@ -246,7 +246,7 @@ cdef inline int _is_pow2(int v):
     return (v & (v - 1)) == 0
 
 
-cdef inline int _color_fmt_to_gl(bytes x):
+cdef inline int _color_fmt_to_gl(str x):
     '''Return the GL numeric value from a color string format
     '''
     x = x.lower()
@@ -273,7 +273,7 @@ cdef inline int _buffer_fmt_to_gl(str x):
 
 
 cdef inline int _buffer_type_to_gl_size(str x):
-    '''Return the size of a buffer string format in bytes
+    '''Return the size of a buffer string format in str
     '''
     x = x.lower()
     try:
@@ -456,7 +456,7 @@ cdef Texture _texture_create(int width, int height, str colorfmt, str bufferfmt,
     if allocate:
 
         # prepare information needed for nogil
-        glfmt = _color_fmt_to_gl(<bytes>colorfmt)
+        glfmt = _color_fmt_to_gl(colorfmt)
         iglbufferfmt = glbufferfmt
         datasize = texture_width * texture_height * \
                 _gl_format_size(glfmt) * _buffer_type_to_gl_size(bufferfmt)
