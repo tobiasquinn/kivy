@@ -686,7 +686,7 @@ def load(filename):
 
 # load image loaders
 image_libs = []
-if platform() in ('macosx', 'ios'):
+if platform() in ('ios',):
     image_libs += [('imageio', 'img_imageio')]
 image_libs += [
     ('dds', 'img_dds'),
